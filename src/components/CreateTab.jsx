@@ -22,6 +22,7 @@ export default function CreateTab({ onScript }) {
   const [script, setScript] = useState('')
   const [loading, setLoading] = useState(false)
   const [speaking, setSpeaking] = useState(false)
+  const [error, setError] = useState('')
 
   async function generate() {
     setLoading(true)
@@ -29,7 +30,7 @@ export default function CreateTab({ onScript }) {
     const s = STYLES.find(x => x.id === style)
     const prompt = `Escreva um roteiro curto (45-90s) para um video animado sobre "${topic}", no estilo visual "${s.name}". Use linguagem natural e direta, sem cliches. ${facts ? 'Fatos de referencia:\n' + facts : ''} Retorne apenas o roteiro, com marcacoes [cena] e [narracao].`
     try {
-      const text = await chat([{ role: 'user', content: prompt }])
+      const text = await chat({ messages: [{ role: 'user', content: prompt }] })
       setScript(text)
       onScript?.(text)
     } finally {
@@ -58,6 +59,7 @@ export default function CreateTab({ onScript }) {
           {STYLES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </div>
+      {error && <p className="text-sm text-red-400 bg-red-950/40 border border-red-900 rounded-lg p-2">{error}</p>}
       <button onClick={generate} disabled={!topic.trim() || loading}
         className="w-full bg-emerald-500 text-black font-semibold py-2.5 rounded-lg disabled:opacity-50">
         {loading ? 'Gerando...' : 'Gerar roteiro'}
