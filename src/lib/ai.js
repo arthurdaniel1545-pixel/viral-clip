@@ -8,7 +8,7 @@ export function saveConfig(cfg) { localStorage.setItem(STORAGE_KEY, JSON.stringi
 
 export function loadKeys() { try { return JSON.parse(localStorage.getItem(KEYS_KEY) || '{}') } catch { return {} } }
 export function saveKeys(k) { localStorage.setItem(KEYS_KEY, JSON.stringify(k)) }
-export function getKey(providerId) { return loadKeys()[providerId] || '' }
+export function getKey(providerId) { return (loadKeys()[providerId] || '').trim() }
 
 export const PROVIDERS = [
   { id: 'auto', name: 'Auto (detecta o melhor)', baseUrl: '', model: '' },
@@ -29,8 +29,10 @@ export const AUTO_MODELS = {
 }
 
 async function tryModel(baseUrl, key, mdl, messages, temperature, signal) {
+  const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` }
+  if (baseUrl.includes('openrouter')) { headers['HTTP-Referer'] = 'https://viralclip.app'; headers['X-Title'] = 'ViralClip' }
   const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+    method: 'POST', headers,
     body: JSON.stringify({ model: mdl, messages, temperature }), signal,
   })
   if (!res.ok) { const t = await res.text(); throw new Error(`IA erro ${res.status}: ${t}`) }
