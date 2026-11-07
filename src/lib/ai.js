@@ -33,7 +33,7 @@ async function tryModel(baseUrl, key, mdl, messages, temperature, signal) {
   if (baseUrl.includes('openrouter')) { headers['HTTP-Referer'] = 'https://viralclip.app'; headers['X-Title'] = 'ViralClip' }
   const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
     method: 'POST', headers,
-    body: JSON.stringify({ model: mdl, messages, temperature }), signal,
+    body: JSON.stringify({ model: mdl, messages, temperature, max_tokens: 600 }), signal,
   })
   if (!res.ok) { const t = await res.text(); throw new Error(`IA erro ${res.status}: ${t}`) }
   const data = await res.json()
@@ -63,7 +63,7 @@ export async function chat({ messages, model, temperature = 0.7, signal }) {
       try {
         const res = await fetch(`${cfg.baseUrl.replace(/\/$/, '')}/chat/completions`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
-          body: JSON.stringify({ model: model || cfg.model, messages, temperature }), signal,
+          body: JSON.stringify({ model: model || cfg.model, messages, temperature, max_tokens: 600 }), signal,
         })
         if (res.ok) { const d = await res.json(); return d.choices?.[0]?.message?.content ?? '' }
       } catch {}
@@ -82,7 +82,7 @@ export async function chat({ messages, model, temperature = 0.7, signal }) {
     try {
       const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
-        body: JSON.stringify({ model: mdl, messages, temperature }), signal,
+        body: JSON.stringify({ model: mdl, messages, temperature, max_tokens: 600 }), signal,
       })
       if (!res.ok) { const t = await res.text(); throw new Error(`IA erro ${res.status}: ${t}`) }
       const data = await res.json()
