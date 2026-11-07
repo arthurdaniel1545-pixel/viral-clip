@@ -60,6 +60,10 @@ export default function CreateTab({ onScript }) {
         </select>
       </div>
       {error && <p className="text-sm text-red-400 bg-red-950/40 border border-red-900 rounded-lg p-2">{error}</p>}
+      <button onClick={() => { setScript(`E se voce virasse o Saitama\n\n[cena] Voce acorda com careca e capa branca.\n[narracao] Um dia comum vira lenda.\n\n[cena] Soco que quebra a atmosfera.\n[narracao] O poder nao pede permissao.\n\n[cena] Heroi por hobby, monstro por destino.\n[narracao] E se voce fosse o mais forte?`); onScript?.(`E se voce virasse o Saitama\n\n[cena] Voce acorda com careca e capa branca.\n[narracao] Um dia comum vira lenda.\n\n[cena] Soco que quebra a atmosfera.\n[narracao] O poder nao pede permissao.\n\n[cena] Heroi por hobby, monstro por destino.\n[narracao] E se voce fosse o mais forte?`) }}
+        className="w-full bg-zinc-800 hover:bg-zinc-700 py-2.5 rounded-lg text-sm">
+        Usar roteiro de exemplo (sem IA)
+      </button>
       <button onClick={generate} disabled={!topic.trim() || loading}
         className="w-full bg-emerald-500 text-black font-semibold py-2.5 rounded-lg disabled:opacity-50">
         {loading ? 'Gerando...' : 'Gerar roteiro'}
