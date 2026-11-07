@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { getElevenAudioBlob } from '../lib/tts.js'
 
 function parseScenes(script) {
   if (!script) return [{ text: 'Seu video animado', dur: 6 }]
@@ -32,7 +33,21 @@ export default function VideoTab({ script, format = 'reels' }) {
     canvas.width = W; canvas.height = H
     const scenes = parseScenes(script)
     const totalDur = scenes.reduce((a, s) => a + s.dur, 0)
-    const stream = canvas.captureStream(30)
+    let stream = canvas.captureStream(30)
+    const audioBlob = await getElevenAudioBlob(script)
+    if (audioBlob) {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+      const buf = await audioBlob.arrayBuffer()
+      const audioBuf = await audioCtx.decodeAudioData(buf)
+      const src = audioCtx.createBufferSource()
+      src.buffer = audioBuf
+      const dest = audioCtx.createMediaStreamDestination()
+      src.connect(dest)
+      src.connect(audioCtx.destination)
+      src.start()
+      const tracks = [...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]
+      stream = new MediaStream(tracks)
+    }
     const rec = new MediaRecorder(stream, { mimeType: 'video/webm' })
     const chunks = []
     rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data) }

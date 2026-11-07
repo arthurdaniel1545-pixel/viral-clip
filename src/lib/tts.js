@@ -36,3 +36,17 @@ export async function speak(text, { onEnd } = {}) {
   u.onend = () => onEnd?.();
   window.speechSynthesis.speak(u);
 }
+
+export async function getElevenAudioBlob(text) {
+  const key = getElevenKey()
+  if (!key) return null
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${getElevenVoice()}`, {
+      method: 'POST',
+      headers: { 'xi-api-key': key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, model_id: 'eleven_multilingual_v2' }),
+    })
+    if (!res.ok) return null
+    return await res.blob()
+  } catch { return null }
+}
