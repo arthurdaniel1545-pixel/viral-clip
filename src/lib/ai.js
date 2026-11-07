@@ -12,7 +12,7 @@ export function getKey(providerId) { return (loadKeys()[providerId] || '').trim(
 
 export const PROVIDERS = [
   { id: 'auto', name: 'Auto (detecta o melhor)', baseUrl: '', model: '' },
-  { id: 'openrouter', name: 'OpenRouter (modelos gratis)', baseUrl: 'https://openrouter.ai/api/v1', model: 'meta-llama/llama-3.3-70b-instruct:free' },
+  { id: 'openrouter', name: 'OpenRouter (modelos gratis)', baseUrl: 'https://openrouter.ai/api/v1', model: 'google/gemma-2-9b-it:free' },
   { id: 'gemini', name: 'Google Gemini (gratis)', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-3.8-flash' },
   { id: 'groq', name: 'Groq (gratis)', baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
   { id: 'ollama', name: 'Ollama (local, gratis)', baseUrl: 'http://localhost:11434/v1', model: 'llama3.2' },
@@ -21,7 +21,7 @@ export const PROVIDERS = [
 ]
 
 export const AUTO_MODELS = {
-  openrouter: ['meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-2-9b-it:free', 'mistralai/mistral-7b-instruct:free'],
+  openrouter: ['google/gemma-2-9b-it:free', 'mistralai/mistral-7b-instruct:free', 'meta-llama/llama-3.2-3b-instruct:free'],
   gemini: ['gemini-3.8-flash', 'gemini-2.5-flash'],
   groq: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'],
   ollama: ['llama3.2', 'llama3.1', 'mistral'],
