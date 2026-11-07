@@ -15,7 +15,8 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState('criar')
-  const [script, setScript] = useState('')
+  const [script, setScript] = useState(() => localStorage.getItem('vc.script') || '')
+  const setScriptPersist = (v) => { setScript(v); localStorage.setItem('vc.script', v || '') }
   const [format, setFormat] = useState('reels')
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -24,7 +25,7 @@ export default function App() {
         <h1 className="text-xl font-semibold tracking-tight">ViralClip</h1>
       </header>
       <main className="px-4 pb-24">
-        {tab === 'criar' && <CreateTab onScript={setScript} />}
+        {tab === 'criar' && <CreateTab onScript={setScriptPersist} />}
         {tab === 'video' && (
           <div className="space-y-3">
             <select value={format} onChange={e=>setFormat(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5">
