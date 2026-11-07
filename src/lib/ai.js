@@ -70,7 +70,9 @@ export async function chat({ messages, model, temperature = 0.7, signal }) {
     }
     throw new Error('Nenhum provedor ativo. Configure pelo menos uma chave em Ajustes.\n' + errors.join('\n'))
   }
-  if (!cfg.baseUrl || !cfg.apiKey) throw new Error('Configure uma IA em Ajustes primeiro.')
+  const fallbackKey = cfg.apiKey || getKey(cfg.provider)
+  if (!cfg.baseUrl || !fallbackKey) throw new Error('Configure uma IA em Ajustes primeiro.')
+  cfg.apiKey = fallbackKey
   const p = PROVIDERS.find(x => x.id === cfg.provider) || { baseUrl: cfg.baseUrl, model: cfg.model }
   const baseUrl = cfg.baseUrl || p.baseUrl
   const requested = model || cfg.model || p.model || 'auto'
