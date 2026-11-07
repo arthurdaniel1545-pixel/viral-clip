@@ -86,3 +86,4 @@ export async function chat({ messages, model, temperature = 0.7, signal }) {
     } catch (e) { lastErr = e }
   }
   throw lastErr || new Error('falha')
+}
