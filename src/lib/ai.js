@@ -14,7 +14,7 @@ export async function chat({ messages, model, temperature = 0.7, signal }) {
     body: JSON.stringify({ model: model || cfg.model, messages, temperature }),
     signal,
   })
-  if (!res.ok) throw new Error(`IA erro ${res.status}: ${await res.text()}`)
+  if (!res.ok) { const t = await res.text(); const hint = res.status === 401 ? ' (verifique a chave em Ajustes)' : ''; throw new Error(`IA erro ${res.status}${hint}: ${t}`) }
   const data = await res.json()
   return data.choices?.[0]?.message?.content ?? ''
 }
