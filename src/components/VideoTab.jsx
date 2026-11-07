@@ -90,6 +90,15 @@ export default function VideoTab({ script, format = 'reels' }) {
       const g = ctx.createLinearGradient(0, 0, W, H)
       g.addColorStop(0, pal[0]); g.addColorStop(1, pal[1])
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
+      // floating particles
+      ctx.globalAlpha = 0.25
+      for (let i = 0; i < 18; i++) {
+        const px = (i * 137 + t * 40) % W
+        const py = (i * 97 + t * 25) % H
+        ctx.fillStyle = pal[2]
+        ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2); ctx.fill()
+      }
+      ctx.globalAlpha = a
       // animated accent circle
       ctx.globalAlpha = 0.15
       ctx.fillStyle = pal[2]
@@ -101,12 +110,20 @@ export default function VideoTab({ script, format = 'reels' }) {
       ctx.fillText(`Cena ${sceneIdx + 1} de ${scenes.length}`, W / 2, 70)
       // text
       ctx.fillStyle = '#ffffff'; ctx.font = 'bold 40px sans-serif'
-      const lines = wrapText(scenes[sceneIdx].text, W - 100)
+      const words = scenes[sceneIdx].text.split(' ')
+      const reveal = Math.floor((sceneT / sceneDur) * words.length * 1.4)
+      const visible = words.slice(0, Math.min(words.length, reveal + 1)).join(' ')
+      const lines = wrapText(visible, W - 100)
       const startY = H / 2 - (lines.length * 50) / 2
       lines.forEach((ln, i) => {
-        const y = startY + i * 52 + (1 - a) * 20
+        const y = startY + i * 52
         ctx.globalAlpha = a
-        ctx.fillText(ln, W / 2, y)
+        ctx.save()
+        ctx.translate(W/2, y)
+        const sc = 0.85 + 0.15 * a
+        ctx.scale(sc, sc)
+        ctx.fillText(ln, 0, 0)
+        ctx.restore()
       })
       ctx.globalAlpha = 1
       // progress bar
