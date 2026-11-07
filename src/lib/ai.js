@@ -24,5 +24,6 @@ export const PROVIDERS = [
   { id: 'gemini', name: 'Google Gemini (grátis)', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash' },
   { id: 'groq', name: 'Groq (grátis)', baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
   { id: 'ollama', name: 'Ollama (local, grátis)', baseUrl: 'http://localhost:11434/v1', model: 'llama3.2' },
+  { id: '9router', name: '9Router (local)', baseUrl: 'http://localhost:20128/v1', model: 'gpt-4o-mini' },
   { id: 'custom', name: 'Custom (OpenAI-compat)', baseUrl: '', model: '' },
 ]
