@@ -3,10 +3,12 @@ import CreateTab from './components/CreateTab.jsx'
 import StylesTab from './components/StylesTab.jsx'
 import SettingsTab from './components/SettingsTab.jsx'
 import VideoTab from './components/VideoTab.jsx'
+import ScheduleTab from './components/ScheduleTab.jsx'
 
 const TABS = [
   { id: 'criar', label: 'Criar' },
   { id: 'video', label: 'Video' },
+  { id: 'agenda', label: 'Agenda' },
   { id: 'estilos', label: 'Estilos' },
   { id: 'ajustes', label: 'Ajustes' },
 ]
@@ -23,6 +25,7 @@ export default function App() {
       <main className="px-4 pb-24">
         {tab === 'criar' && <CreateTab onScript={setScript} />}
         {tab === 'video' && <VideoTab script={script} />}
+        {tab === 'agenda' && <ScheduleTab />}
         {tab === 'estilos' && <StylesTab />}
         {tab === 'ajustes' && <SettingsTab />}
       </main>
