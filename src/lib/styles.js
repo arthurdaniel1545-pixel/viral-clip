@@ -1,0 +1,18 @@
+export const STYLES = [
+  { id: 'anatomy', name: 'Anatomia', desc: 'Camadas e partes do corpo/objeto' },
+  { id: 'lines', name: 'Linhas', desc: 'Traço contínuo minimalista' },
+  { id: 'world3d', name: 'Mundo 3D', desc: 'Cena isométrica low-poly' },
+  { id: 'clay', name: 'Massinha', desc: 'Estilo claymation' },
+  { id: 'popup', name: 'Livro Pop-up', desc: 'Páginas que se abrem em 3D' },
+  { id: 'inflatable', name: 'Inflável', desc: 'Objetos infláveis fofos' },
+  { id: 'crystal', name: 'Cristal', desc: 'Facetas translúcidas' },
+  { id: 'isometric', name: 'Isométrico', desc: 'Vista isométrica técnica' },
+  { id: 'mesh', name: 'Malha', desc: 'Wireframe/mesh art' },
+  { id: 'swiss', name: 'Suíço', desc: 'Tipografia suíça limpa' },
+  { id: 'felt', name: 'Feltro', desc: 'Textura de feltro' },
+  { id: 'silhouette', name: 'Silhueta', desc: 'Sombras e contornos' },
+  { id: 'faceted', name: 'Facetado', desc: 'Low-poly facetado' },
+  { id: 'singleline', name: 'Linha Única', desc: 'Desenho de uma linha' },
+  { id: 'museum', name: 'Museu', desc: 'Exposição de arte' },
+  { id: 'outline', name: 'Contorno', desc: 'Contorno grosso cartoon' },
+]
