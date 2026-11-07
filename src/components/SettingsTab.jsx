@@ -8,10 +8,19 @@ export default function SettingsTab() {
   const [eKey, setEKey] = useState(getElevenKey())
   const [eVoice, setEVoice] = useState(getElevenVoice())
   const [saved, setSaved] = useState(false)
+  const [testMsg, setTestMsg] = useState('')
 
   function applyProvider(p) {
     const preset = PROVIDERS.find(x => x.id === p)
     setCfg(c => ({ ...c, provider: p, baseUrl: preset?.baseUrl || c.baseUrl, model: preset?.model || c.model }))
+  }
+  async function test() {
+    setTestMsg('Testando...')
+    try {
+      const { chat } = await import('../lib/ai.js')
+      const r = await chat({ messages: [{ role: 'user', content: 'diga oi' }] })
+      setTestMsg('OK: ' + (r || '').slice(0, 80))
+    } catch (e) { setTestMsg('ERRO: ' + (e.message || e)) }
   }
   function save() {
     saveConfig(cfg); saveKeys(keys); setElevenKey(eKey.trim()); setElevenVoice(eVoice.trim())
@@ -73,6 +82,8 @@ export default function SettingsTab() {
           className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 font-mono text-sm" />
       </div>
 
+      <button onClick={test} className="w-full bg-zinc-700 hover:bg-zinc-600 py-2.5 rounded-lg text-sm">Testar conexao</button>
+      {testMsg && <p className="text-xs text-zinc-300 break-words">{testMsg}</p>}
       <button onClick={save} className="w-full bg-emerald-500 text-black font-semibold py-2.5 rounded-lg">
         {saved ? 'Salvo' : 'Salvar'}
       </button>
