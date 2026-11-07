@@ -20,16 +20,34 @@ export const PROVIDERS = [
   { id: 'custom', name: 'Custom (OpenAI-compat)', baseUrl: '', model: '' },
 ]
 
-async function tryProvider(p, messages, model, temperature, signal) {
-  const key = getKey(p.id)
-  if (!key) throw new Error('sem chave')
-  const res = await fetch(`${p.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+export const AUTO_MODELS = {
+  openrouter: ['meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-2-9b-it:free', 'mistralai/mistral-7b-instruct:free'],
+  gemini: ['gemini-3.8-flash', 'gemini-2.5-flash'],
+  groq: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'],
+  ollama: ['llama3.2', 'llama3.1', 'mistral'],
+  '9router': ['gpt-4o-mini', 'gpt-4o', 'claude-3-5-sonnet'],
+}
+
+async function tryModel(baseUrl, key, mdl, messages, temperature, signal) {
+  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-    body: JSON.stringify({ model: model || p.model, messages, temperature }), signal,
+    body: JSON.stringify({ model: mdl, messages, temperature }), signal,
   })
   if (!res.ok) { const t = await res.text(); throw new Error(`IA erro ${res.status}: ${t}`) }
   const data = await res.json()
   return data.choices?.[0]?.message?.content ?? ''
+}
+
+async function tryProvider(p, messages, model, temperature, signal) {
+  const key = getKey(p.id) || (loadConfig().provider === p.id ? loadConfig().apiKey : '')
+  if (!key) throw new Error('sem chave')
+  const requested = model || 'auto'
+  const candidates = (requested === 'auto' || !requested) ? (AUTO_MODELS[p.id] || [p.model]) : [requested]
+  let lastErr
+  for (const mdl of candidates) {
+    try { return await tryModel(p.baseUrl, key, mdl, messages, temperature, signal) } catch (e) { lastErr = e }
+  }
+  throw lastErr || new Error('falha')
 }
 
 export async function chat({ messages, model, temperature = 0.7, signal }) {
@@ -53,12 +71,18 @@ export async function chat({ messages, model, temperature = 0.7, signal }) {
   if (!cfg.baseUrl || !cfg.apiKey) throw new Error('Configure uma IA em Ajustes primeiro.')
   const p = PROVIDERS.find(x => x.id === cfg.provider) || { baseUrl: cfg.baseUrl, model: cfg.model }
   const baseUrl = cfg.baseUrl || p.baseUrl
-  const mdl = model || cfg.model || p.model
-  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
-    body: JSON.stringify({ model: mdl, messages, temperature }), signal,
-  })
-  if (!res.ok) { const t = await res.text(); const hint = res.status === 401 ? ' (verifique a chave em Ajustes)' : ''; throw new Error(`IA erro ${res.status}${hint}: ${t}`) }
-  const data = await res.json()
-  return data.choices?.[0]?.message?.content ?? ''
-}
+  const requested = model || cfg.model || p.model || 'auto'
+  const candidates = (requested === 'auto' || !requested) ? (AUTO_MODELS[cfg.provider] || [p.model]) : [requested]
+  let lastErr
+  for (const mdl of candidates) {
+    try {
+      const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
+        body: JSON.stringify({ model: mdl, messages, temperature }), signal,
+      })
+      if (!res.ok) { const t = await res.text(); throw new Error(`IA erro ${res.status}: ${t}`) }
+      const data = await res.json()
+      return data.choices?.[0]?.message?.content ?? ''
+    } catch (e) { lastErr = e }
+  }
+  throw lastErr || new Error('falha')
