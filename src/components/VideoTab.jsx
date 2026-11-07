@@ -16,8 +16,15 @@ function parseScenes(script) {
   }
   if (cur) scenes.push(cur)
   if (!scenes.length) scenes.push(script.slice(0, 300))
-  return scenes.map(s => ({ text: s, dur: Math.max(3, Math.min(8, s.length / 40)) }))
+  return scenes.map(s => ({ text: s, dur: Math.max(3, Math.min(8, s.length / 35 + 1)) }))
 }
+
+const PALETTES = [
+  ['#0f172a', '#1e293b', '#34d399'],
+  ['#1e1b4b', '#312e81', '#a78bfa'],
+  ['#1c1917', '#292524', '#fbbf24'],
+  ['#0c4a6e', '#075985', '#38bdf8'],
+]
 
 export default function VideoTab({ script, format = 'reels' }) {
   const [rendering, setRendering] = useState(false)
@@ -36,57 +43,75 @@ export default function VideoTab({ script, format = 'reels' }) {
     let stream = canvas.captureStream(30)
     const audioBlob = await getElevenAudioBlob(script)
     if (audioBlob) {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-      const buf = await audioBlob.arrayBuffer()
-      const audioBuf = await audioCtx.decodeAudioData(buf)
-      const src = audioCtx.createBufferSource()
-      src.buffer = audioBuf
-      const dest = audioCtx.createMediaStreamDestination()
-      src.connect(dest)
-      src.connect(audioCtx.destination)
-      src.start()
-      const tracks = [...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]
-      stream = new MediaStream(tracks)
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        const buf = await audioBlob.arrayBuffer()
+        const audioBuf = await audioCtx.decodeAudioData(buf)
+        const src = audioCtx.createBufferSource()
+        src.buffer = audioBuf
+        const dest = audioCtx.createMediaStreamDestination()
+        src.connect(dest); src.connect(audioCtx.destination); src.start()
+        stream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()])
+      } catch {}
     }
     const rec = new MediaRecorder(stream, { mimeType: 'video/webm' })
     const chunks = []
     rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data) }
     rec.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' })
-      setUrl(URL.createObjectURL(blob)); setRendering(false); setProgress(100)
+      setUrl(URL.createObjectURL(new Blob(chunks, { type: 'video/webm' })))
+      setRendering(false); setProgress(100)
     }
     rec.start()
     const start = performance.now()
-    let sceneIdx = 0, sceneStart = 0, acc = 0
-    const sceneStarts = scenes.map(s => { const t = acc; acc += s.dur; return t })
+    const sceneStarts = []
+    let acc = 0
+    scenes.forEach(s => { sceneStarts.push(acc); acc += s.dur })
+    let sceneIdx = 0
+    function wrapText(text, maxW) {
+      const words = text.split(' '); const lines = []; let line = ''
+      for (const w of words) {
+        if (ctx.measureText(line + ' ' + w).width > maxW) { lines.push(line); line = w }
+        else line = line ? line + ' ' + w : w
+      }
+      if (line) lines.push(line)
+      return lines
+    }
     function frame() {
       const t = (performance.now() - start) / 1000
       if (t >= totalDur) { rec.stop(); return }
       while (sceneIdx < scenes.length - 1 && t >= sceneStarts[sceneIdx + 1]) sceneIdx++
       const sceneT = t - sceneStarts[sceneIdx]
       const sceneDur = scenes[sceneIdx].dur
-      const fade = Math.min(1, sceneT / 0.4) * Math.min(1, (sceneDur - sceneT) / 0.4 + 0.6)
-      // background
-      const g = ctx.createLinearGradient(0, 0, 0, H)
-      g.addColorStop(0, '#0f172a'); g.addColorStop(1, '#1e293b')
+      const pal = PALETTES[sceneIdx % PALETTES.length]
+      const fadeIn = Math.min(1, sceneT / 0.5)
+      const fadeOut = sceneT > sceneDur - 0.5 ? (sceneDur - sceneT) / 0.5 : 1
+      const a = Math.max(0, Math.min(1, fadeIn * fadeOut))
+      // bg
+      const g = ctx.createLinearGradient(0, 0, W, H)
+      g.addColorStop(0, pal[0]); g.addColorStop(1, pal[1])
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
-      // title bar
-      ctx.fillStyle = '#34d399'; ctx.font = 'bold 36px sans-serif'; ctx.textAlign = 'center'
-      ctx.globalAlpha = fade
-      ctx.fillText(`Cena ${sceneIdx + 1}/${scenes.length}`, W / 2, 90)
-      // scene text wrapped
-      ctx.fillStyle = '#e2e8f0'; ctx.font = '30px sans-serif'
-      const words = scenes[sceneIdx].text.split(' ')
-      const lines = []; let line = ''
-      for (const w of words) {
-        if (ctx.measureText(line + ' ' + w).width > W - 80) { lines.push(line); line = w } else line = (line ? line + ' ' : '') + w
-      }
-      if (line) lines.push(line)
-      lines.slice(0, 8).forEach((ln, i) => ctx.fillText(ln, W / 2, H / 2 - 40 + i * 42))
+      // animated accent circle
+      ctx.globalAlpha = 0.15
+      ctx.fillStyle = pal[2]
+      const r = 80 + Math.sin(t * 2) * 20
+      ctx.beginPath(); ctx.arc(W / 2, H * 0.25, r, 0, Math.PI * 2); ctx.fill()
+      ctx.globalAlpha = a
+      // scene number
+      ctx.fillStyle = pal[2]; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center'
+      ctx.fillText(`Cena ${sceneIdx + 1} de ${scenes.length}`, W / 2, 70)
+      // text
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 40px sans-serif'
+      const lines = wrapText(scenes[sceneIdx].text, W - 100)
+      const startY = H / 2 - (lines.length * 50) / 2
+      lines.forEach((ln, i) => {
+        const y = startY + i * 52 + (1 - a) * 20
+        ctx.globalAlpha = a
+        ctx.fillText(ln, W / 2, y)
+      })
       ctx.globalAlpha = 1
-      // progress
-      ctx.fillStyle = '#475569'; ctx.fillRect(40, H - 40, W - 80, 6)
-      ctx.fillStyle = '#34d399'; ctx.fillRect(40, H - 40, (W - 80) * (t / totalDur), 6)
+      // progress bar
+      ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(50, H - 50, W - 100, 8)
+      ctx.fillStyle = pal[2]; ctx.fillRect(50, H - 50, (W - 100) * (t / totalDur), 8)
       setProgress(Math.round((t / totalDur) * 100))
       requestAnimationFrame(frame)
     }
@@ -100,7 +125,7 @@ export default function VideoTab({ script, format = 'reels' }) {
         className="w-full bg-emerald-500 text-black font-semibold py-2.5 rounded-lg disabled:opacity-50">
         {rendering ? `Renderizando... ${progress}%` : 'Renderizar video (WebM)'}
       </button>
-      {!script?.trim() && <p className="text-xs text-zinc-500">Gere um roteiro primeiro na aba Criar.</p>}
+      {!script?.trim() && <p className="text-xs text-zinc-500">Gere um roteiro primeiro na aba Criar (ou use o exemplo).</p>}
       {url && (
         <div className="space-y-2">
           <video src={url} controls className="w-full rounded-lg" />
