@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 
-export default function VideoTab({ script }) {
+export default function VideoTab({ script, format = 'reels' }) {
   const [rendering, setRendering] = useState(false)
   const [url, setUrl] = useState('')
   const canvasRef = useRef(null)
@@ -9,7 +9,8 @@ export default function VideoTab({ script }) {
     setRendering(true)
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
-    const W = 720, H = 1280
+    const dims = format === 'square' ? [720,720] : [720,1280]
+    const W = dims[0], H = dims[1]
     canvas.width = W; canvas.height = H
     const stream = canvas.captureStream(30)
     const rec = new MediaRecorder(stream, { mimeType: 'video/webm' })

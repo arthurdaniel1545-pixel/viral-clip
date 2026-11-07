@@ -16,6 +16,7 @@ const TABS = [
 export default function App() {
   const [tab, setTab] = useState('criar')
   const [script, setScript] = useState('')
+  const [format, setFormat] = useState('reels')
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <header className="px-4 pt-5 pb-3">
@@ -24,7 +25,15 @@ export default function App() {
       </header>
       <main className="px-4 pb-24">
         {tab === 'criar' && <CreateTab onScript={setScript} />}
-        {tab === 'video' && <VideoTab script={script} />}
+        {tab === 'video' && (
+          <div className="space-y-3">
+            <select value={format} onChange={e=>setFormat(e.target.value)} className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5">
+              <option value="reels">Reels/TikTok (9:16)</option>
+              <option value="square">Carrossel (1:1)</option>
+            </select>
+            <VideoTab script={script} format={format} />
+          </div>
+        )}
         {tab === 'agenda' && <ScheduleTab />}
         {tab === 'estilos' && <StylesTab />}
         {tab === 'ajustes' && <SettingsTab />}
